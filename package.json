@@ -1,0 +1,7 @@
+{
+  "dependencies": {
+    "@jagamypriera/smoldb": "^1.0.4",
+    "node-fetch": "^3.3.0"
+  },
+  "type": "module"
+}
