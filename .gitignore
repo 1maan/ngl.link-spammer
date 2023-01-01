@@ -1,9 +1,9 @@
-/cli/targets.js
-/cli/log.json
-/cli/node_modules
-/cli/package-lock.json
+cli/targets.js
+cli/log.json
+cli/node_modules
+cli/package-lock.json
 
-/ui/targets.js
-/ui/log.json
-/ui/node_modules
-/ui/package-lock.json
+ui/data/targets.js
+ui/data/log.json
+ui/data/node_modules
+ui/package-lock.json
