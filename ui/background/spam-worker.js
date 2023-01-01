@@ -1,14 +1,21 @@
-// import fetch
+// const fetch = require("node-fetch");
+// const questions = require("./questions.js");
+// const smoldb = require("@jagamypriera/smoldb");
+// const model = require("./model.js");
+// const fs = require("fs");
 import fetch from "node-fetch";
-import questions from "./questions.js";
-import { smoldb } from "@jagamypriera/smoldb";
-import model from "./model.js";
-import usernames from "./usernames.js";
+import questions from "../data/questions.js";
+import smoldb from "@jagamypriera/smoldb";
+import model from "../data/model.js";
+import fs from "fs";
 
 var chars =
   "0123456789abcdefghijklmnopqrstuvwxyz!@#$%^&*()ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
-const prepareSmol = await smoldb({ path: "db.json", model: model });
+const prepareSmol = await smoldb.smoldb({
+  path: "./data/log.json",
+  model: model,
+});
 const { smol } = model;
 
 const sendQuestion = async (username, randomQuestion, deviceId) => {
@@ -65,20 +72,51 @@ const sendQuestionToUser = async (username) => {
     console.log(`sleeping for ${sleepfor / 1000} seconds\n`);
 
     await sleep(sleepfor);
-  } else {
-    const count = smol.usernames[username] || 0;
-    console.log(`(#${count}) Sent(@${username}): ${randomQuestion}`);
-    if (smol.usernames[username]) {
-      smol.usernames[username] = smol.usernames[username] + 1;
-    } else {
-      smol.usernames[username] = 1;
-    }
+    return;
   }
-  await sleep(1000);
+  const count = smol.usernames[username] || 0;
+  console.log(`(#${count}) Sent(@${username}): ${randomQuestion}`);
+  if (smol.usernames[username]) {
+    smol.usernames[username] = count + 1;
+    return;
+  }
+  smol.usernames[username] = 1;
 };
 
-while (true) {
-  for (let username of usernames) {
-    await sendQuestionToUser(username);
+const getTargets = async () => {
+  let targetsJson = fs.readFileSync("./data/targets.json", "utf-8");
+  let targets = JSON.parse(targetsJson);
+  return targets;
+};
+
+const getActiveTargets = async () => {
+  let targetsJson = fs.readFileSync("./data/targets.json", "utf-8");
+  let targets = JSON.parse(targetsJson);
+  return targets.filter((target) => target.active);
+};
+
+const getInactiveTargets = async () => {
+  let targetsJson = fs.readFileSync("./data/targets.json", "utf-8");
+  let targets = JSON.parse(targetsJson);
+  return targets.filter((target) => !target.active);
+};
+
+async function startSpamming() {
+  while (true) {
+    const targets = await getTargets();
+    const activeTargets = await getActiveTargets();
+    // console.log(targets);
+    if (targets.length === 0 || activeTargets.length === 0) {
+      console.log("no targets");
+      await sleep(2000);
+      continue;
+    }
+    // pick one of targets randomly
+    const randomTarget = targets[Math.floor(Math.random() * targets.length)];
+    if (!randomTarget.active) continue;
+    await sendQuestionToUser(randomTarget.username);
+    await sleep(1000);
   }
 }
+
+export default startSpamming;
